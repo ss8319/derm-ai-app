@@ -1,0 +1,12 @@
+# Ignore markdown documentation files
+*.md
+# Node dependencies
+node_modules/
+# Build output
+dist/
+# Environment files
+.env
+# Logs
+npm-debug.log
+yarn-debug.log
+yarn-error.log
