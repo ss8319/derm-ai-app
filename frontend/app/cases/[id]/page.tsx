@@ -109,8 +109,8 @@ export default function CaseDetail() {
         <main className="min-h-screen bg-gray-50 p-4 md:p-8">
             <div className="max-w-7xl mx-auto">
                 <div className="mb-6 flex items-center justify-between">
-                    <Link href={`/patients/${caseData.patientId}`} className="text-indigo-600 hover:text-indigo-800 font-medium flex items-center">
-                        &larr; Back to Patient {caseData.patientId}
+                    <Link href="/patients" className="text-indigo-600 hover:text-indigo-800 font-medium flex items-center">
+                        &larr; Back to Patients
                     </Link>
                 </div>
 
