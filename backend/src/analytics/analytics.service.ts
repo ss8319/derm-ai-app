@@ -99,7 +99,15 @@ export class AnalyticsService {
 
     async getClinicianPerformance() {
         const clinicians = await this.userRepo.find({ where: { role: 'clinician' } });
-        const performanceData = [];
+        const performanceData: Array<{
+            id: string;
+            name: string;
+            email: string;
+            totalAssignments: number;
+            completedCases: number;
+            accuracy: number;
+            averageTimeSeconds: number;
+        }> = [];
 
         for (const clinician of clinicians) {
             const responses = await this.responseRepo.find({

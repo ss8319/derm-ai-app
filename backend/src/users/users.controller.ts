@@ -10,9 +10,8 @@ import { Roles } from '../auth/roles.decorator';
 export class UsersController {
     constructor(private readonly usersService: UsersService) { }
 
-    @Patch(':id')
-    @Roles('admin')
-    async updateUser(@Param('id') id: string, @Body() updateData: Partial<any>) {
-        return this.usersService.update(id, updateData);
+    @Get()
+    async findAll() {
+        return this.usersService.findAll();
     }
 }

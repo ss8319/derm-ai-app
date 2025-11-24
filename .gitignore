@@ -1,5 +1,8 @@
 # Ignore markdown documentation files
 *.md
+# EXCEPT for README.md (the exclamation mark denotes an exception)
+!README.md
+
 # Node dependencies
 node_modules/
 # Build output
