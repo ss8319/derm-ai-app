@@ -1,7 +1,9 @@
 import { Controller, Get, Param } from '@nestjs/common';
 import { CasesService } from './cases.service';
 import { Case } from './case.entity';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('Cases')
 @Controller('cases')
 export class CasesController {
     constructor(private readonly casesService: CasesService) { }

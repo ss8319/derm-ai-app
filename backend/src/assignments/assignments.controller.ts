@@ -3,7 +3,10 @@ import { AssignmentsService } from './assignments.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
+import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 
+@ApiTags('Assignments')
+@ApiBearerAuth()
 @Controller('assignments')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class AssignmentsController {

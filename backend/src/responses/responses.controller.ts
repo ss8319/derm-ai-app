@@ -2,7 +2,10 @@ import { Controller, Post, Body, UseGuards, Request, Get, Param } from '@nestjs/
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { ResponsesService } from './responses.service';
 import { CreateClinicianResponseDto } from './create-clinician-response.dto';
+import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 
+@ApiTags('Responses')
+@ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
 @Controller('responses')
 export class ResponsesController {
