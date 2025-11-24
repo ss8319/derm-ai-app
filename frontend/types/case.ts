@@ -6,6 +6,8 @@ export interface Case {
     clinicalHistory: string;
     chiefComplaint: string;
     imageUrl: string;
+    lesionNumber: number;
+    lesionLocation: string;
     dermoscopyUrl?: string;
     groundTruthDiagnosis?: string;
     createdAt: string;

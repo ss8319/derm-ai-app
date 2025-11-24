@@ -33,4 +33,29 @@ export class CasesService {
             where: { caseId },
         });
     }
+
+    async getPatients(): Promise<Array<{ patientId: string; lesionCount: number; age: number; gender: string }>> {
+        const result = await this.caseRepository
+            .createQueryBuilder('case')
+            .select('case.patientId', 'patientId')
+            .addSelect('COUNT(case.id)', 'lesionCount')
+            .addSelect('MAX(case.age)', 'age')
+            .addSelect('MAX(case.gender)', 'gender')
+            .groupBy('case.patientId')
+            .getRawMany();
+
+        return result.map(r => ({
+            patientId: r.patientId,
+            lesionCount: parseInt(r.lesionCount),
+            age: r.age,
+            gender: r.gender
+        }));
+    }
+
+    async getLesionsByPatient(patientId: string): Promise<Case[]> {
+        return this.caseRepository.find({
+            where: { patientId },
+            order: { lesionNumber: 'ASC' }
+        });
+    }
 }

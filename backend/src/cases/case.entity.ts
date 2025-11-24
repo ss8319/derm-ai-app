@@ -8,6 +8,12 @@ export class Case {
     @Column()
     patientId: string;
 
+    @Column({ default: 1 })
+    lesionNumber: number;
+
+    @Column({ nullable: true })
+    lesionLocation: string; // e.g., "Left arm", "Back", "Face"
+
     @Column()
     age: number;
 

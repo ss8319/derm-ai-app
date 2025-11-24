@@ -15,4 +15,14 @@ export class CasesController {
     async findOne(@Param('id') id: string): Promise<Case | null> {
         return this.casesService.findOne(id);
     }
+
+    @Get('patients/list')
+    async getPatients() {
+        return this.casesService.getPatients();
+    }
+
+    @Get('patients/:patientId/lesions')
+    async getLesionsByPatient(@Param('patientId') patientId: string): Promise<Case[]> {
+        return this.casesService.getLesionsByPatient(patientId);
+    }
 }

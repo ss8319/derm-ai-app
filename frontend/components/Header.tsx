@@ -13,8 +13,11 @@ export default function Header() {
             </Link>
             {isAuthenticated && (
                 <div className="flex items-center space-x-4">
+                    <Link href="/patients" className="text-gray-700 hover:text-indigo-600 font-medium">
+                        Patients
+                    </Link>
                     {(isAdmin() || isResearcher()) && (
-                        <Link href="/admin" className="text-indigo-600 hover:text-indigo-800 font-medium mr-4">
+                        <Link href="/admin" className="text-indigo-600 hover:text-indigo-800 font-medium">
                             Admin Dashboard
                         </Link>
                     )}

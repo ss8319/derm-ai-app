@@ -35,5 +35,6 @@ export async function apiFetch<T>(endpoint: string, options: FetchOptions = {}):
         throw new Error(errorData.message || 'API request failed');
     }
 
-    return response.json();
+    const text = await response.text();
+    return text ? JSON.parse(text) : {} as T;
 }

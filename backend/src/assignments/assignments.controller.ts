@@ -12,7 +12,12 @@ export class AssignmentsController {
     @Get('my-cases')
     async getMyAssignedCases(@Request() req) {
         const assignments = await this.assignmentsService.getAssignedCases(req.user.id);
-        return assignments.map(a => a.case);
+        // Deduplicate cases by ID to prevent frontend errors
+        const uniqueCases = new Map();
+        assignments.forEach(a => {
+            if (a.case) uniqueCases.set(a.case.id, a.case);
+        });
+        return Array.from(uniqueCases.values());
     }
 
     @Post()

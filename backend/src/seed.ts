@@ -50,103 +50,119 @@ async function seed() {
         institution: 'Regional Hospital',
     });
 
-    console.log('Creating sample cases...');
+    console.log('Creating sample patients with multiple lesions...');
 
-    // Create sample cases
-    const case1 = caseRepository.create({
-        patientId: 'P-1001',
-        age: 34,
-        gender: 'Male',
-        clinicalHistory: 'Red rash on arm, itchy, started 2 days ago. No known allergies.',
-        chiefComplaint: 'Itchy rash',
-        imageUrl: 'https://placehold.co/600x400/e74c3c/ffffff?text=Eczema+Case',
-        groundTruthDiagnosis: 'Atopic Dermatitis (Eczema)',
-    });
+    const lesionLocations = [
+        'Left arm', 'Right arm', 'Left leg', 'Right leg', 'Back', 'Chest',
+        'Face', 'Neck', 'Left hand', 'Right hand', 'Abdomen', 'Shoulder',
+        'Left foot', 'Right foot', 'Scalp', 'Forehead', 'Cheek', 'Nose'
+    ];
 
-    const case2 = caseRepository.create({
-        patientId: 'P-1002',
-        age: 28,
-        gender: 'Female',
-        clinicalHistory: 'Dark spot on back, irregular border, noticed 3 months ago.',
-        chiefComplaint: 'Suspicious mole',
-        imageUrl: 'https://placehold.co/600x400/34495e/ffffff?text=Melanoma+Case',
-        groundTruthDiagnosis: 'Malignant Melanoma',
-    });
+    const diagnoses = [
+        'Atopic Dermatitis (Eczema)',
+        'Malignant Melanoma',
+        'Psoriasis',
+        'Basal Cell Carcinoma',
+        'Seborrheic Keratosis',
+        'Actinic Keratosis',
+        'Dermatofibroma',
+        'Nevus (Mole)',
+        'Contact Dermatitis',
+        'Rosacea'
+    ];
 
-    const case3 = caseRepository.create({
-        patientId: 'P-1003',
-        age: 45,
-        gender: 'Male',
-        clinicalHistory: 'Scaly patches on elbows and knees, recurring for years.',
-        chiefComplaint: 'Scaly skin patches',
-        imageUrl: 'https://placehold.co/600x400/3498db/ffffff?text=Psoriasis+Case',
-        groundTruthDiagnosis: 'Plaque Psoriasis',
-    });
+    const cases: Case[] = [];
 
-    const savedCase1 = await caseRepository.save(case1);
-    const savedCase2 = await caseRepository.save(case2);
-    const savedCase3 = await caseRepository.save(case3);
+    // Create 3 patients with exactly 20 lesions each
+    const patients = [
+        { id: 'P-1001', age: 34, gender: 'Male', lesionCount: 20 },
+        { id: 'P-1002', age: 28, gender: 'Female', lesionCount: 20 },
+        { id: 'P-1003', age: 45, gender: 'Male', lesionCount: 20 }
+    ];
+
+    for (const patient of patients) {
+        for (let i = 1; i <= patient.lesionCount; i++) {
+            const diagnosis = diagnoses[Math.floor(Math.random() * diagnoses.length)];
+            const location = lesionLocations[Math.floor(Math.random() * lesionLocations.length)];
+
+            // Alternate between the two real images
+            const imageUrl = i % 2 === 0 ? '/Skin.jpg' : '/TBP.jpeg';
+
+            const newCase = caseRepository.create({
+                patientId: patient.id,
+                lesionNumber: i,
+                lesionLocation: location,
+                age: patient.age,
+                gender: patient.gender,
+                clinicalHistory: `Patient ${patient.id}, lesion #${i} on ${location}. ${i === 1 ? 'First presentation.' : `Follow-up lesion.`
+                    } ${diagnosis.includes('Melanoma') ? 'Irregular border, asymmetric.' : 'Regular appearance.'}`,
+                chiefComplaint: `Lesion on ${location}`,
+                imageUrl: imageUrl,
+                groundTruthDiagnosis: diagnosis,
+            });
+
+            cases.push(newCase);
+        }
+    }
+
+    const savedCases = await caseRepository.save(cases);
+    console.log(`✅ Created ${savedCases.length} lesions across ${patients.length} patients`);
 
     console.log('Creating AI predictions...');
 
-    // Create AI predictions
-    await predictionRepository.save({
-        caseId: savedCase1.id,
-        predictedCondition: 'Eczema',
-        confidence: 0.92,
-        modelVersion: 'v1.0',
-        additionalPredictions: [
-            { condition: 'Contact Dermatitis', confidence: 0.06 },
-            { condition: 'Psoriasis', confidence: 0.02 },
-        ],
-    });
+    // Create predictions for first 10 lesions of each patient
+    for (const patient of patients) {
+        const patientCases = savedCases.filter(c => c.patientId === patient.id).slice(0, 10);
 
-    await predictionRepository.save({
-        caseId: savedCase2.id,
-        predictedCondition: 'Melanoma',
-        confidence: 0.85,
-        modelVersion: 'v1.0',
-        additionalPredictions: [
-            { condition: 'Dysplastic Nevus', confidence: 0.10 },
-            { condition: 'Seborrheic Keratosis', confidence: 0.05 },
-        ],
-    });
-
-    await predictionRepository.save({
-        caseId: savedCase3.id,
-        predictedCondition: 'Psoriasis',
-        confidence: 0.88,
-        modelVersion: 'v1.0',
-        additionalPredictions: [
-            { condition: 'Eczema', confidence: 0.08 },
-            { condition: 'Lichen Planus', confidence: 0.04 },
-        ],
-    });
+        for (const caseItem of patientCases) {
+            const mainDiagnosis = diagnoses[Math.floor(Math.random() * diagnoses.length)];
+            await predictionRepository.save({
+                caseId: caseItem.id,
+                predictedCondition: mainDiagnosis,
+                confidence: 0.75 + Math.random() * 0.2,
+                modelVersion: 'v1.0',
+                additionalPredictions: [
+                    { condition: diagnoses[(diagnoses.indexOf(mainDiagnosis) + 1) % diagnoses.length], confidence: 0.15 },
+                    { condition: diagnoses[(diagnoses.indexOf(mainDiagnosis) + 2) % diagnoses.length], confidence: 0.10 },
+                ],
+            });
+        }
+    }
 
     console.log('Creating case assignments...');
 
-    // Assign all cases to admin (for testing admin view)
-    await assignmentRepository.save([
-        { caseId: savedCase1.id, userId: adminUser.id, status: 'pending' },
-        { caseId: savedCase2.id, userId: adminUser.id, status: 'pending' },
-        { caseId: savedCase3.id, userId: adminUser.id, status: 'pending' },
-    ]);
+    // Assign all lesions from patient P-1001 to clinician1
+    const patient1Cases = savedCases.filter(c => c.patientId === 'P-1001');
+    for (const caseItem of patient1Cases) {
+        await assignmentRepository.save({
+            caseId: caseItem.id,
+            userId: clinician1.id,
+            status: 'pending'
+        });
+    }
 
-    // Assign cases to clinician1 (cases 1 and 2)
-    await assignmentRepository.save([
-        { caseId: savedCase1.id, userId: clinician1.id, status: 'pending' },
-        { caseId: savedCase2.id, userId: clinician1.id, status: 'pending' },
-    ]);
+    // Assign all lesions from patient P-1002 to clinician2
+    const patient2Cases = savedCases.filter(c => c.patientId === 'P-1002');
+    for (const caseItem of patient2Cases) {
+        await assignmentRepository.save({
+            caseId: caseItem.id,
+            userId: clinician2.id,
+            status: 'pending'
+        });
+    }
 
-    // Assign cases to clinician2 (cases 2 and 3)
-    await assignmentRepository.save([
-        { caseId: savedCase2.id, userId: clinician2.id, status: 'pending' },
-        { caseId: savedCase3.id, userId: clinician2.id, status: 'pending' },
-    ]);
+    // Assign all lesions from patient P-1003 to both clinicians
+    const patient3Cases = savedCases.filter(c => c.patientId === 'P-1003');
+    for (const caseItem of patient3Cases) {
+        await assignmentRepository.save([
+            { caseId: caseItem.id, userId: clinician1.id, status: 'pending' },
+            { caseId: caseItem.id, userId: clinician2.id, status: 'pending' }
+        ]);
+    }
 
     console.log('✅ Seed data created successfully!');
     console.log(`- Created ${await userRepository.count()} users`);
-    console.log(`- Created ${await caseRepository.count()} cases`);
+    console.log(`- Created ${await caseRepository.count()} lesions`);
     console.log(`- Created ${await predictionRepository.count()} predictions`);
     console.log(`- Created ${await assignmentRepository.count()} assignments`);
 
