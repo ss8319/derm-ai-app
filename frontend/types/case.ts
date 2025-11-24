@@ -11,9 +11,8 @@ export interface Case {
     dermoscopyUrl?: string;
     groundTruthDiagnosis?: string;
     createdAt: string;
-    // We will add prediction later when we fetch it separately or join it
-    prediction?: {
-        condition: string;
-        confidence: number;
+    aiPrediction?: {
+        classification: string;
+        probability: number;
     };
 }

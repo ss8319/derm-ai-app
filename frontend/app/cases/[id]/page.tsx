@@ -18,8 +18,27 @@ export default function CaseDetail() {
     const [rating, setRating] = useState<number | undefined>(undefined);
     const [comments, setComments] = useState('');
     const [aiAssistanceEnabled, setAiAssistanceEnabled] = useState(false);
-    const [timeSpent, setTimeSpent] = useState(0);
+    const [startTime, setStartTime] = useState<number>(Date.now());
+    const [elapsedTime, setElapsedTime] = useState(0);
     const [submitMessage, setSubmitMessage] = useState<string | null>(null);
+
+    // Timer effect
+    useEffect(() => {
+        setStartTime(Date.now());
+        setElapsedTime(0);
+        const timer = setInterval(() => {
+            setElapsedTime(Math.floor((Date.now() - startTime) / 1000));
+        }, 1000);
+        return () => clearInterval(timer);
+    }, [id]); // Reset timer when case ID changes
+
+    // Update elapsed time display
+    useEffect(() => {
+        const timer = setInterval(() => {
+            setElapsedTime(Math.floor((Date.now() - startTime) / 1000));
+        }, 1000);
+        return () => clearInterval(timer);
+    }, [startTime]);
 
     useEffect(() => {
         const fetchCaseAndSiblings = async () => {
@@ -46,6 +65,8 @@ export default function CaseDetail() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setSubmitMessage(null);
+        const finalTime = Math.floor((Date.now() - startTime) / 1000);
+
         try {
             await apiFetch('/responses', {
                 method: 'POST',
@@ -54,7 +75,7 @@ export default function CaseDetail() {
                     rating,
                     comments,
                     aiAssistanceEnabled,
-                    timeSpentSeconds: timeSpent,
+                    timeSpentSeconds: finalTime,
                     caseId: id,
                 }),
             });
@@ -171,19 +192,21 @@ export default function CaseDetail() {
                                         {/* Clinician Response Form */}
                                         <form onSubmit={handleSubmit} className="space-y-4 pt-4 border-t border-gray-100">
                                             <div>
-                                                <label className="block text-sm font-medium text-gray-700">Diagnosis *</label>
-                                                <input
-                                                    type="text"
+                                                <label className="block text-sm font-medium text-gray-700">Classification *</label>
+                                                <select
                                                     required
                                                     className="mt-1 w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-indigo-500 focus:border-indigo-500"
                                                     value={diagnosis}
                                                     onChange={e => setDiagnosis(e.target.value)}
-                                                    placeholder="Enter your diagnosis..."
-                                                />
+                                                >
+                                                    <option value="">Select Classification...</option>
+                                                    <option value="Benign">Benign</option>
+                                                    <option value="Malignant">Malignant</option>
+                                                </select>
                                             </div>
                                             <div className="flex space-x-4">
                                                 <div className="flex-1">
-                                                    <label className="block text-sm font-medium text-gray-700">Rating (1‑5)</label>
+                                                    <label className="block text-sm font-medium text-gray-700">Confidence Level (1‑5)</label>
                                                     <input
                                                         type="number"
                                                         min={1}
@@ -195,13 +218,9 @@ export default function CaseDetail() {
                                                 </div>
                                                 <div className="flex-1">
                                                     <label className="block text-sm font-medium text-gray-700">Time (sec)</label>
-                                                    <input
-                                                        type="number"
-                                                        min={0}
-                                                        className="mt-1 w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-indigo-500 focus:border-indigo-500"
-                                                        value={timeSpent}
-                                                        onChange={e => setTimeSpent(Number(e.target.value))}
-                                                    />
+                                                    <div className="mt-1 w-full border border-gray-300 bg-gray-50 rounded-md shadow-sm p-2 text-gray-700 font-mono">
+                                                        {elapsedTime}s
+                                                    </div>
                                                 </div>
                                             </div>
                                             <div>
@@ -225,6 +244,37 @@ export default function CaseDetail() {
                                                     Enable AI assistance
                                                 </label>
                                             </div>
+
+                                            {/* AI Prediction Display */}
+                                            {aiAssistanceEnabled && (
+                                                caseData.aiPrediction ? (
+                                                    <div className="mt-4 p-4 bg-indigo-50 rounded-md border border-indigo-100 animate-fadeIn">
+                                                        <h4 className="text-xs font-bold text-indigo-900 uppercase tracking-wide mb-2">AI Analysis</h4>
+                                                        <div className="flex items-center justify-between">
+                                                            <div>
+                                                                <span className="text-gray-600 text-sm">Classification:</span>
+                                                                <span className={`ml-2 font-bold ${caseData.aiPrediction.classification === 'Malignant' ? 'text-red-600' : 'text-green-600'}`}>
+                                                                    {caseData.aiPrediction.classification}
+                                                                </span>
+                                                            </div>
+                                                            <div>
+                                                                <span className="text-gray-600 text-sm">Probability:</span>
+                                                                <span className="ml-2 font-bold text-indigo-700">
+                                                                    {(caseData.aiPrediction.probability * 100).toFixed(1)}%
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                ) : (
+                                                    <div className="mt-4 p-4 bg-gray-50 rounded-md border border-gray-200 animate-fadeIn">
+                                                        <p className="text-sm text-gray-500 italic text-center">
+                                                            No AI prediction data available for this case.
+                                                            <br />
+                                                            <span className="text-xs text-gray-400">(Run 'npm run seed' to generate data)</span>
+                                                        </p>
+                                                    </div>
+                                                )
+                                            )}
                                             <button
                                                 type="submit"
                                                 className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"

@@ -38,6 +38,12 @@ export class Case {
     @Column({ type: 'simple-json', nullable: true })
     metadata: Record<string, any>;
 
+    @Column({ type: 'simple-json', nullable: true })
+    aiPrediction: {
+        classification: string;
+        probability: number;
+    };
+
     @CreateDateColumn()
     createdAt: Date;
 }

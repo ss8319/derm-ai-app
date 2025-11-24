@@ -88,6 +88,12 @@ async function seed() {
             // Alternate between the two real images
             const imageUrl = i % 2 === 0 ? '/Skin.jpg' : '/TBP.jpeg';
 
+            // Generate AI Prediction
+            const isMalignant = Math.random() > 0.8; // 20% chance of malignant
+            const aiClassification = isMalignant ? 'Malignant' : 'Benign';
+            // High confidence for whatever it predicts
+            const aiProbability = 0.7 + Math.random() * 0.29;
+
             const newCase = caseRepository.create({
                 patientId: patient.id,
                 lesionNumber: i,
@@ -99,6 +105,10 @@ async function seed() {
                 chiefComplaint: `Lesion on ${location}`,
                 imageUrl: imageUrl,
                 groundTruthDiagnosis: diagnosis,
+                aiPrediction: {
+                    classification: aiClassification,
+                    probability: parseFloat(aiProbability.toFixed(2))
+                }
             });
 
             cases.push(newCase);
@@ -108,26 +118,7 @@ async function seed() {
     const savedCases = await caseRepository.save(cases);
     console.log(`✅ Created ${savedCases.length} lesions across ${patients.length} patients`);
 
-    console.log('Creating AI predictions...');
-
-    // Create predictions for first 10 lesions of each patient
-    for (const patient of patients) {
-        const patientCases = savedCases.filter(c => c.patientId === patient.id).slice(0, 10);
-
-        for (const caseItem of patientCases) {
-            const mainDiagnosis = diagnoses[Math.floor(Math.random() * diagnoses.length)];
-            await predictionRepository.save({
-                caseId: caseItem.id,
-                predictedCondition: mainDiagnosis,
-                confidence: 0.75 + Math.random() * 0.2,
-                modelVersion: 'v1.0',
-                additionalPredictions: [
-                    { condition: diagnoses[(diagnoses.indexOf(mainDiagnosis) + 1) % diagnoses.length], confidence: 0.15 },
-                    { condition: diagnoses[(diagnoses.indexOf(mainDiagnosis) + 2) % diagnoses.length], confidence: 0.10 },
-                ],
-            });
-        }
-    }
+    // Removed old prediction table logic as we now store it on the case directly
 
     console.log('Creating case assignments...');
 
